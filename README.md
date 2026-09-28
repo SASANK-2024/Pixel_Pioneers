@@ -43,9 +43,7 @@ UPCOMING MEETING ──> RECALL (Hindsight) ──> ORGANIZE ──> REASON (Gro
   ┌──────────────────────────────────────────────────────────────────────────────────┘
   ▼
 USER ACTION / CALL ──> POST-MEETING OUTCOME ──> EXTRACT DURABLE FACTS ──> RETAIN (Hindsight)
-```
 
-```mermaid
 graph TD
     A[Business User / Sales Rep] -->|Selects Upcoming Meeting| B[React 19 Executive UI]
     B -->|POST /api/meetings/{id}/prepare| C[Meeting Orchestrator]
