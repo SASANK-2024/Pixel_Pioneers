@@ -19,6 +19,7 @@ class LLMService:
         self, 
         system_prompt: str, 
         user_message: str, 
+        conversation_history: Optional[list] = None,
         max_tokens: int = 2048,
         temperature: float = 0.2
     ) -> Tuple[str, Optional[str]]:
@@ -30,12 +31,19 @@ class LLMService:
             raise RuntimeError("LLM client is not initialized or GROQ_API_KEY is missing.")
 
         try:
+            messages = [{"role": "system", "content": system_prompt}]
+            if conversation_history:
+                for msg in conversation_history:
+                    role = getattr(msg, "role", None) or (msg.get("role") if isinstance(msg, dict) else "user")
+                    content = getattr(msg, "content", None) or (msg.get("content") if isinstance(msg, dict) else "")
+                    if role and content:
+                        messages.append({"role": role, "content": content})
+            
+            messages.append({"role": "user", "content": user_message})
+
             response = self.client.chat.completions.create(
                 model=self.model,
-                messages=[
-                    {"role": "system", "content": system_prompt},
-                    {"role": "user", "content": user_message}
-                ],
+                messages=messages,
                 max_tokens=max_tokens,
                 temperature=temperature
             )

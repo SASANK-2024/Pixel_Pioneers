@@ -19,11 +19,31 @@ class HindsightService:
             logger.error(f"Failed to initialize Hindsight client: {e}")
             self.client = None
 
-    def retain(self, content: str, context: Optional[str] = "SRE Incident Post-Mortem", tags: Optional[List[str]] = None) -> dict:
-        """Stores a verified incident fact, post-mortem, runbook, or failed remediation step into Hindsight."""
+    async def aretain(self, content: str, context: Optional[str] = "SRE Incident Post-Mortem", tags: Optional[List[str]] = None) -> dict:
+        """Asynchronously stores a verified incident fact, post-mortem, runbook, or Q&A interaction into Hindsight."""
         if not self.client:
             raise RuntimeError("Hindsight client is not initialized.")
         
+        try:
+            res = await self.client.aretain(
+                bank_id=self.bank_id,
+                content=content,
+                context=context,
+                tags=tags or []
+            )
+            return {
+                "success": bool(getattr(res, "success", True)),
+                "bank_id": self.bank_id,
+                "items_count": getattr(res, "items_count", 1)
+            }
+        except Exception as e:
+            logger.error(f"Hindsight aretain error: {e}")
+            raise e
+
+    def retain(self, content: str, context: Optional[str] = "SRE Incident Post-Mortem", tags: Optional[List[str]] = None) -> dict:
+        """Synchronously stores an incident fact into Hindsight."""
+        if not self.client:
+            raise RuntimeError("Hindsight client is not initialized.")
         try:
             res = self.client.retain(
                 bank_id=self.bank_id,
@@ -40,14 +60,14 @@ class HindsightService:
             logger.error(f"Hindsight retain error: {e}")
             raise e
 
-    def recall(self, query: str, limit: int = 5) -> List[MemoryItem]:
-        """Retrieves semantically relevant historical memories (symptoms, failed fixes, verified runbooks)."""
+    async def arecall(self, query: str, limit: int = 5) -> List[MemoryItem]:
+        """Asynchronously retrieves semantically relevant historical memories (symptoms, failed fixes, verified runbooks)."""
         if not self.client:
             logger.warning("Hindsight client is unavailable; returning empty memory.")
             return []
 
         try:
-            response = self.client.recall(
+            response = await self.client.arecall(
                 bank_id=self.bank_id,
                 query=query,
                 max_tokens=4096
@@ -70,7 +90,38 @@ class HindsightService:
                     )
                 )
             
-            # Sort by score descending if available and limit
+            items.sort(key=lambda m: (m.score or 0.0), reverse=True)
+            return items[:limit]
+        except Exception as e:
+            logger.error(f"Hindsight arecall error: {e}")
+            return []
+
+    def recall(self, query: str, limit: int = 5) -> List[MemoryItem]:
+        """Synchronously retrieves historical memories."""
+        if not self.client:
+            logger.warning("Hindsight client is unavailable; returning empty memory.")
+            return []
+        try:
+            response = self.client.recall(
+                bank_id=self.bank_id,
+                query=query,
+                max_tokens=4096
+            )
+            items: List[MemoryItem] = []
+            for item in response:
+                score = None
+                if hasattr(item, "scores") and item.scores:
+                    score = getattr(item.scores, "final", None)
+                items.append(
+                    MemoryItem(
+                        id=str(getattr(item, "id", "")),
+                        text=getattr(item, "text", ""),
+                        type=getattr(item, "type", "world"),
+                        context=getattr(item, "context", None),
+                        score=score,
+                        mentioned_at=str(getattr(item, "mentioned_at", "")) if getattr(item, "mentioned_at", None) else None
+                    )
+                )
             items.sort(key=lambda m: (m.score or 0.0), reverse=True)
             return items[:limit]
         except Exception as e:

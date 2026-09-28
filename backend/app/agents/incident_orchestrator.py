@@ -7,34 +7,50 @@ from backend.app.schemas import ChatRequest, ChatResponseModel, MemoryItem
 logger = logging.getLogger(__name__)
 
 class IncidentOrchestrator:
-    def process_incident(self, req: ChatRequest) -> ChatResponseModel:
+    async def process_incident(self, req: ChatRequest) -> ChatResponseModel:
         """
         Coordinates the complete memory-aware SRE incident triage loop:
         1. Query Hindsight for historical incident context, failed fixes, and runbooks.
         2. Construct memory-aware context prompt.
-        3. Reason and generate mitigation response via LLM.
-        4. Detect and retain useful new operational facts or outcomes.
+        3. Reason and generate mitigation response via LLM (including multi-turn conversation history).
+        4. Retain Q&A and useful new operational facts or outcomes into Hindsight.
         """
         memories_retrieved: List[MemoryItem] = []
+        is_asking_about_previous = any(
+            phrase in req.message.lower() 
+            for phrase in [
+                "previous question", "previous answer", "earlier question", 
+                "earlier answer", "what did you say", "what was the answer", 
+                "last question", "last answer", "what did i ask", "what i have asked",
+                "answer which i got"
+            ]
+        )
         
         if req.mode == "with_memory":
-            retrieval_query = f"{req.service_name} {req.message}"
-            memories_retrieved = hindsight_service.recall(query=retrieval_query, limit=5)
+            if is_asking_about_previous and req.history:
+                retrieval_query = f"{req.service_name} {req.history[-1].content} {req.message}"
+            elif is_asking_about_previous:
+                retrieval_query = f"{req.service_name} previous SRE advice runbook resolution question answer"
+            else:
+                retrieval_query = f"{req.service_name} {req.message}"
+
+            memories_retrieved = await hindsight_service.arecall(query=retrieval_query, limit=5)
             logger.info(f"Retrieved {len(memories_retrieved)} memories for query: {retrieval_query}")
             
-            system_prompt = self._build_memory_aware_prompt(req, memories_retrieved)
+            system_prompt = self._build_memory_aware_prompt(req, memories_retrieved, is_asking_about_previous)
         else:
-            # Baseline stateless mode for live judge comparison (Rule 20 & 21)
-            system_prompt = self._build_stateless_prompt(req)
+            # Baseline stateless mode
+            system_prompt = self._build_stateless_prompt(req, is_asking_about_previous)
 
-        # Call LLM
+        # Call LLM with multi-turn conversation history
         response_text, reasoning = llm_service.generate_response(
             system_prompt=system_prompt,
-            user_message=req.message
+            user_message=req.message,
+            conversation_history=req.history
         )
 
-        # Automatic memory retention check (Rule 7 & 14)
-        new_memory_retained, retained_summary = self._evaluate_and_retain(req, response_text)
+        # Retain new memory and Q&A interaction into Hindsight (Rule 7 & 14)
+        new_memory_retained, retained_summary = await self._evaluate_and_retain(req, response_text)
 
         return ChatResponseModel(
             response=response_text,
@@ -46,16 +62,17 @@ class IncidentOrchestrator:
             retained_summary=retained_summary
         )
 
-    def _build_memory_aware_prompt(self, req: ChatRequest, memories: List[MemoryItem]) -> str:
+    def _build_memory_aware_prompt(self, req: ChatRequest, memories: List[MemoryItem], is_asking_about_previous: bool) -> str:
         prompt_parts = [
             "You are OpsHindsight, an expert Site Reliability Engineer (SRE) and Incident Commander assistant.",
             f"Current Service Context: {req.service_name} | Environment: {req.environment}.",
             "Your objective: Rapidly diagnose production incidents, recommend high-confidence remediation steps, and prevent catastrophic repeated errors.",
             "",
             "CRITICAL OPERATIONAL RULES:",
-            "1. NEGATIVE MEMORY: If past memory shows an attempted action failed or worsened the incident (e.g. scaling pods, restarting nodes, clearing cache), EXPLICITLY WARN the engineer NOT to repeat it.",
-            "2. VERIFIED SOLUTIONS: If a verified runbook or fix previously resolved this issue, highlight and recommend it first with exact commands.",
-            "3. Be concise, direct, and actionable. On-call engineers during an outage need quick, high-signal guidance, not conversational filler.",
+            "1. CONVERSATION & MEMORY CONTINUITY: You have access to recent conversation history and Hindsight persistent memories. When the user asks about previous questions or answers (e.g. 'what is the answer to my previous question?'), clearly recount the previous question and the exact answer/guidance given.",
+            "2. NEGATIVE MEMORY: If past memory shows an attempted action failed or worsened the incident (e.g. scaling pods, restarting nodes, clearing cache), EXPLICITLY WARN the engineer NOT to repeat it.",
+            "3. VERIFIED SOLUTIONS: If a verified runbook or fix previously resolved this issue, highlight and recommend it first with exact commands.",
+            "4. Be concise, direct, and actionable. On-call engineers during an outage need quick, high-signal guidance.",
             "",
             "=== RETRIEVED HINDSIGHT HISTORICAL MEMORY ==="
         ]
@@ -69,44 +86,45 @@ class IncidentOrchestrator:
                 prompt_parts.append(f"{idx}. {m.text}{context_tag}{score_tag}")
 
         prompt_parts.append("==============================================")
-        prompt_parts.append("Use the historical memory above to ground your diagnosis and recommendations.")
+        prompt_parts.append("Use the historical memory above and the conversation history to answer accurately.")
         return "\n".join(prompt_parts)
 
-    def _build_stateless_prompt(self, req: ChatRequest) -> str:
-        return (
-            "You are a generic DevOps assistant without access to past incident history or memory.\n"
+    def _build_stateless_prompt(self, req: ChatRequest, is_asking_about_previous: bool) -> str:
+        prompt = (
+            "You are a DevOps assistant without access to long-term Hindsight incident memory.\n"
             f"Service: {req.service_name} | Environment: {req.environment}.\n"
-            "Provide general diagnostic advice based on the user's message."
         )
+        if is_asking_about_previous and req.history:
+            prompt += "The user is asking about the previous question/answer in this conversation session. Directly recount the previous question and the answer that was given.\n"
+        else:
+            prompt += "Provide general diagnostic advice based on the user's message.\n"
+        return prompt
 
-    def _evaluate_and_retain(self, req: ChatRequest, response_text: str) -> Tuple[bool, Optional[str]]:
+    async def _evaluate_and_retain(self, req: ChatRequest, response_text: str) -> Tuple[bool, Optional[str]]:
         """
-        Determines if the interaction contains a durable operational fact, resolution, or failed fix
-        that should be persisted into Hindsight for future incidents (Rule 14).
+        Persists operational facts, post-mortems, and Q&A interactions into Hindsight (Rule 7 & 14).
         """
-        content_lower = req.message.lower()
-        
-        # Trigger keywords that indicate a real post-mortem, new fix, or failed step
-        retention_triggers = [
-            "resolved by", "solution was", "fixed by", "root cause was",
-            "we tried", "failed attempt", "worsened the outage", "do not repeat",
-            "post-mortem", "runbook", "action item"
-        ]
-
-        if any(trigger in content_lower for trigger in retention_triggers):
-            try:
-                fact_text = f"Service [{req.service_name}] Incident Note: {req.message}"
-                hindsight_service.retain(
-                    content=fact_text,
-                    context=f"SRE Incident Update - {req.service_name}",
-                    tags=[req.service_name, "auto-retained", req.environment]
-                )
-                logger.info(f"Automatically retained new operational memory: {fact_text}")
-                return True, fact_text
-            except Exception as e:
-                logger.error(f"Failed to auto-retain operational memory: {e}")
+        try:
+            content_lower = req.message.lower()
+            
+            # Don't retain meta questions about the previous question itself
+            if any(p in content_lower for p in ["previous question", "previous answer", "answer which i got"]):
                 return False, None
 
-        return False, None
+            # Retain structured Q&A interaction into Hindsight
+            qa_summary = (
+                f"Incident Interaction on [{req.service_name}]: User queried '{req.message}'. "
+                f"OpsHindsight Recommended: '{response_text[:300]}...'"
+            )
+            await hindsight_service.aretain(
+                content=qa_summary,
+                context=f"SRE Interaction History - {req.service_name}",
+                tags=[req.service_name, "qa-interaction", req.environment]
+            )
+            logger.info(f"Retained Q&A interaction to Hindsight: {qa_summary[:100]}...")
+            return True, qa_summary
+        except Exception as e:
+            logger.error(f"Failed to retain interaction to Hindsight: {e}")
+            return False, None
 
 orchestrator = IncidentOrchestrator()

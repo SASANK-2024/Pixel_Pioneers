@@ -12,6 +12,7 @@ export async function sendIncidentChat(
   message: string,
   serviceName: string,
   mode: 'with_memory' | 'without_memory',
+  history: { role: string; content: string }[] = [],
   environment = 'production',
   userId = 'sre-commander'
 ): Promise<ChatResponse> {
@@ -23,7 +24,8 @@ export async function sendIncidentChat(
       service_name: serviceName,
       mode,
       environment,
-      user_id: userId
+      user_id: userId,
+      history
     })
   });
   if (!res.ok) {

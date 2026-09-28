@@ -1,21 +1,19 @@
 from fastapi import APIRouter, HTTPException
-from typing import List
 from backend.app.schemas import (
     RetainRequest, RetainResponseModel, 
-    RecallRequest, RecallResponseModel,
-    MemoryItem
+    RecallRequest, RecallResponseModel
 )
 from backend.app.services.hindsight_service import hindsight_service
 
 router = APIRouter(prefix="/memory", tags=["Hindsight Memory"])
 
 @router.post("/retain", response_model=RetainResponseModel)
-def retain_memory(req: RetainRequest):
+async def retain_memory(req: RetainRequest):
     if not req.content.strip():
         raise HTTPException(status_code=400, detail="Content cannot be empty.")
     
     try:
-        res = hindsight_service.retain(
+        res = await hindsight_service.aretain(
             content=req.content,
             context=req.context,
             tags=req.tags
@@ -30,12 +28,12 @@ def retain_memory(req: RetainRequest):
         raise HTTPException(status_code=500, detail=f"Failed to retain memory in Hindsight: {str(e)}")
 
 @router.post("/recall", response_model=RecallResponseModel)
-def recall_memory(req: RecallRequest):
+async def recall_memory(req: RecallRequest):
     if not req.query.strip():
         raise HTTPException(status_code=400, detail="Query cannot be empty.")
     
     try:
-        memories = hindsight_service.recall(query=req.query, limit=req.limit or 5)
+        memories = await hindsight_service.arecall(query=req.query, limit=req.limit or 5)
         return RecallResponseModel(
             count=len(memories),
             memories=memories
@@ -44,7 +42,7 @@ def recall_memory(req: RecallRequest):
         raise HTTPException(status_code=500, detail=f"Failed to recall memories from Hindsight: {str(e)}")
 
 @router.post("/seed-demo")
-def seed_demo_incidents():
+async def seed_demo_incidents():
     """
     Seeds realistic historical incident post-mortems and runbooks for demonstration purposes
     as mandated by Rules 22 & 23.
@@ -70,7 +68,7 @@ def seed_demo_incidents():
     results = []
     for record in demo_records:
         try:
-            res = hindsight_service.retain(
+            res = await hindsight_service.aretain(
                 content=record["content"],
                 context=record["context"],
                 tags=record["tags"]
