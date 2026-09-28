@@ -183,37 +183,6 @@ export const RecallHeader: React.FC<RecallHeaderProps> = ({
       }}>
         
         <button
-          onClick={() => setActiveTab('learning')}
-          style={{
-            display: 'inline-flex',
-            alignItems: 'center',
-            gap: '8px',
-            padding: '8px 16px',
-            borderRadius: '8px',
-            border: activeTab === 'learning' ? '1px solid #c7d2fe' : '1px solid transparent',
-            background: activeTab === 'learning' ? '#eff0fe' : 'transparent',
-            color: activeTab === 'learning' ? '#4f46e5' : '#475569',
-            fontWeight: activeTab === 'learning' ? 700 : 500,
-            fontSize: '0.85rem',
-            cursor: 'pointer',
-            transition: 'all 0.15s ease'
-          }}
-        >
-          <span className="material-symbols-outlined" style={{ fontSize: '19px', color: activeTab === 'learning' ? '#4f46e5' : '#64748b' }}>model_training</span>
-          <span>Learning & Evolution</span>
-          <span style={{
-            fontSize: '0.68rem',
-            padding: '1px 6px',
-            borderRadius: '9999px',
-            background: activeTab === 'learning' ? '#4f46e5' : '#e2e8f0',
-            color: activeTab === 'learning' ? '#ffffff' : '#64748b',
-            fontWeight: 700
-          }}>
-            Stitch Screen
-          </span>
-        </button>
-
-        <button
           onClick={() => setActiveTab('agent')}
           style={{
             display: 'inline-flex',
@@ -232,6 +201,27 @@ export const RecallHeader: React.FC<RecallHeaderProps> = ({
         >
           <span className="material-symbols-outlined" style={{ fontSize: '19px', color: activeTab === 'agent' ? '#4f46e5' : '#64748b' }}>smart_toy</span>
           <span>AI Agent (Live Memory Chat)</span>
+        </button>
+
+        <button
+          onClick={() => setActiveTab('learning')}
+          style={{
+            display: 'inline-flex',
+            alignItems: 'center',
+            gap: '8px',
+            padding: '8px 16px',
+            borderRadius: '8px',
+            border: activeTab === 'learning' ? '1px solid #c7d2fe' : '1px solid transparent',
+            background: activeTab === 'learning' ? '#eff0fe' : 'transparent',
+            color: activeTab === 'learning' ? '#4f46e5' : '#475569',
+            fontWeight: activeTab === 'learning' ? 700 : 500,
+            fontSize: '0.85rem',
+            cursor: 'pointer',
+            transition: 'all 0.15s ease'
+          }}
+        >
+          <span className="material-symbols-outlined" style={{ fontSize: '19px', color: activeTab === 'learning' ? '#4f46e5' : '#64748b' }}>model_training</span>
+          <span>Learning & Evolution</span>
         </button>
 
         <button

@@ -398,9 +398,7 @@ export const IncidentTriage: React.FC<IncidentTriageProps> = ({
               </div>
               <span style={{ fontSize: '0.75rem', color: '#ba1a1a' }}>⚠️ Naively repeats failed actions</span>
             </div>
-            <div style={{ fontSize: '0.88rem', color: '#464555', lineHeight: 1.6, whiteSpace: 'pre-wrap' }}>
-              {splitResult.withoutMem.response}
-            </div>
+            <FormattedContent content={splitResult.withoutMem.response} isBaseline />
           </div>
 
           {/* OpsHindsight Column */}
@@ -413,9 +411,7 @@ export const IncidentTriage: React.FC<IncidentTriageProps> = ({
                 <span style={{ fontSize: '0.75rem', color: '#059669', fontWeight: 600 }}>🛡️ Grounded in {splitResult.withMem.memories_retrieved.length} memories</span>
               </div>
             </div>
-            <div style={{ fontSize: '0.88rem', color: '#0b1c30', lineHeight: 1.6, whiteSpace: 'pre-wrap' }}>
-              {splitResult.withMem.response}
-            </div>
+            <FormattedContent content={splitResult.withMem.response} />
           </div>
 
         </div>
@@ -509,9 +505,7 @@ export const IncidentTriage: React.FC<IncidentTriageProps> = ({
               </div>
 
               {/* Message Content */}
-              <div style={{ fontSize: '0.92rem', color: '#0b1c30', lineHeight: 1.7, whiteSpace: 'pre-wrap' }}>
-                {msg.content}
-              </div>
+              <FormattedContent content={msg.content} isUser={msg.role === 'user'} />
 
               {/* Memory Grounding Footnote for Assistant */}
               {msg.role === 'assistant' && msg.memories && msg.memories.length > 0 && (
@@ -583,3 +577,189 @@ export const IncidentTriage: React.FC<IncidentTriageProps> = ({
     </div>
   );
 };
+
+interface FormattedContentProps {
+  content: string;
+  isUser?: boolean;
+  isBaseline?: boolean;
+}
+
+const FormattedContent: React.FC<FormattedContentProps> = ({ content, isUser, isBaseline }) => {
+  if (isUser) {
+    return (
+      <div style={{ fontSize: '0.92rem', color: '#0f172a', fontWeight: 500, lineHeight: 1.6, whiteSpace: 'pre-wrap' }}>
+        {content}
+      </div>
+    );
+  }
+
+  const lines = content.split('\n');
+  const elements: React.ReactNode[] = [];
+  let inCodeBlock = false;
+  let codeBlockBuffer: string[] = [];
+  let inTable = false;
+  let tableRows: string[][] = [];
+
+  const flushTable = (keyPrefix: number) => {
+    if (tableRows.length > 0) {
+      const header = tableRows[0];
+      const body = tableRows.slice(1).filter(row => !row.every(cell => /^[-: ]+$/.test(cell)));
+      elements.push(
+        <div key={`table-${keyPrefix}`} style={{ overflowX: 'auto', margin: '14px 0' }}>
+          <table style={{ width: '100%', borderCollapse: 'collapse', border: '1px solid #cbd5e1', fontSize: '0.86rem', color: '#0f172a' }}>
+            <thead>
+              <tr style={{ background: '#f1f5f9' }}>
+                {header.map((col, idx) => (
+                  <th key={idx} style={{ border: '1px solid #cbd5e1', padding: '8px 12px', textAlign: 'left', fontWeight: 700, color: '#0f172a' }}>
+                    {renderInline(col)}
+                  </th>
+                ))}
+              </tr>
+            </thead>
+            <tbody>
+              {body.map((row, rIdx) => (
+                <tr key={rIdx} style={{ background: rIdx % 2 === 0 ? '#ffffff' : '#f8faff' }}>
+                  {row.map((cell, cIdx) => (
+                    <td key={cIdx} style={{ border: '1px solid #e2e8f0', padding: '8px 12px', color: '#0f172a' }}>
+                      {renderInline(cell)}
+                    </td>
+                  ))}
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      );
+      tableRows = [];
+      inTable = false;
+    }
+  };
+
+  for (let i = 0; i < lines.length; i++) {
+    const line = lines[i];
+
+    // Code blocks
+    if (line.trim().startsWith('```')) {
+      if (inTable) flushTable(i);
+      if (inCodeBlock) {
+        elements.push(
+          <pre key={`code-${i}`} style={{ background: '#0f172a', color: '#38bdf8', padding: '12px 16px', borderRadius: '8px', overflowX: 'auto', margin: '10px 0', fontFamily: 'JetBrains Mono, monospace', fontSize: '0.84rem' }}>
+            <code>{codeBlockBuffer.join('\n')}</code>
+          </pre>
+        );
+        codeBlockBuffer = [];
+        inCodeBlock = false;
+      } else {
+        inCodeBlock = true;
+      }
+      continue;
+    }
+
+    if (inCodeBlock) {
+      codeBlockBuffer.push(line);
+      continue;
+    }
+
+    // Tables
+    if (line.trim().startsWith('|') && line.trim().endsWith('|')) {
+      inTable = true;
+      const cells = line.split('|').slice(1, -1).map(c => c.trim());
+      tableRows.push(cells);
+      continue;
+    } else if (inTable) {
+      flushTable(i);
+    }
+
+    // Headings
+    if (line.startsWith('# ')) {
+      elements.push(
+        <h2 key={`h1-${i}`} style={{ fontSize: '1.25rem', fontWeight: 800, color: isBaseline ? '#991b1b' : '#0f172a', margin: '16px 0 8px', borderBottom: '2px solid #e2e8f0', paddingBottom: '4px' }}>
+          {line.replace('# ', '')}
+        </h2>
+      );
+      continue;
+    }
+    if (line.startsWith('## ')) {
+      elements.push(
+        <h3 key={`h2-${i}`} style={{ fontSize: '1.1rem', fontWeight: 700, color: isBaseline ? '#991b1b' : '#0f172a', margin: '14px 0 6px', borderBottom: '1px solid #f1f5f9', paddingBottom: '3px' }}>
+          {line.replace('## ', '')}
+        </h3>
+      );
+      continue;
+    }
+    if (line.startsWith('### ')) {
+      elements.push(
+        <h4 key={`h3-${i}`} style={{ fontSize: '0.98rem', fontWeight: 700, color: isBaseline ? '#991b1b' : '#0f172a', margin: '12px 0 4px' }}>
+          {line.replace('### ', '')}
+        </h4>
+      );
+      continue;
+    }
+
+    // Bullet points
+    if (/^[-*]\s+/.test(line.trim())) {
+      elements.push(
+        <div key={`li-${i}`} style={{ display: 'flex', gap: '8px', marginBottom: '5px', alignItems: 'flex-start', color: '#0f172a' }}>
+          <span style={{ color: isBaseline ? '#ba1a1a' : '#4f46e5', fontWeight: 800, marginTop: '-1px' }}>•</span>
+          <div style={{ flex: 1, color: '#0f172a' }}>{renderInline(line.trim().replace(/^[-*]\s+/, ''))}</div>
+        </div>
+      );
+      continue;
+    }
+
+    // Numbered lists
+    if (/^\d+\.\s+/.test(line.trim())) {
+      const numMatch = line.trim().match(/^(\d+)\.\s+/);
+      const num = numMatch ? numMatch[1] : '1';
+      elements.push(
+        <div key={`ol-${i}`} style={{ display: 'flex', gap: '8px', marginBottom: '5px', alignItems: 'flex-start', color: '#0f172a' }}>
+          <span style={{ color: isBaseline ? '#ba1a1a' : '#4f46e5', fontWeight: 700, fontSize: '0.85rem', minWidth: '18px' }}>{num}.</span>
+          <div style={{ flex: 1, color: '#0f172a' }}>{renderInline(line.trim().replace(/^\d+\.\s+/, ''))}</div>
+        </div>
+      );
+      continue;
+    }
+
+    // Empty lines
+    if (!line.trim()) {
+      elements.push(<div key={`sp-${i}`} style={{ height: '8px' }} />);
+      continue;
+    }
+
+    // Normal paragraph
+    elements.push(
+      <p key={`p-${i}`} style={{ margin: '0 0 8px', color: '#0f172a', lineHeight: 1.65 }}>
+        {renderInline(line)}
+      </p>
+    );
+  }
+
+  if (inTable) flushTable(lines.length);
+
+  return (
+    <div className="markdown-body" style={{ color: '#0f172a', fontSize: '0.92rem', lineHeight: 1.7 }}>
+      {elements}
+    </div>
+  );
+};
+
+function renderInline(text: string): React.ReactNode[] {
+  const parts = text.split(/(`[^`]+`|\*\*[^*]+\*\*)/g);
+  return parts.map((part, i) => {
+    if (part.startsWith('`') && part.endsWith('`')) {
+      return (
+        <code key={i} style={{ background: '#eff0fe', color: '#3525cd', padding: '2px 6px', borderRadius: '4px', fontFamily: 'JetBrains Mono, monospace', fontSize: '0.88em', fontWeight: 600 }}>
+          {part.slice(1, -1)}
+        </code>
+      );
+    }
+    if (part.startsWith('**') && part.endsWith('**')) {
+      return (
+        <strong key={i} style={{ color: '#0f172a', fontWeight: 700 }}>
+          {part.slice(2, -2)}
+        </strong>
+      );
+    }
+    return part;
+  });
+}

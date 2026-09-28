@@ -103,3 +103,127 @@ code, pre, .font-mono {
 ::-webkit-scrollbar-thumb:hover {
   background: #94a3b8;
 }
+
+/* High-Contrast Markdown & AI Response Typography */
+.agent-response-card {
+  color: #0f172a !important;
+  background-color: #ffffff !important;
+}
+
+.markdown-body {
+  color: #0f172a !important;
+  font-size: 0.93rem;
+  line-height: 1.7;
+}
+
+.markdown-body h1,
+.markdown-body h2,
+.markdown-body h3,
+.markdown-body h4 {
+  color: #0f172a !important;
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  font-weight: 700;
+  margin-top: 16px;
+  margin-bottom: 8px;
+}
+
+.markdown-body h1 {
+  font-size: 1.25rem;
+  border-bottom: 2px solid #e2e8f0;
+  padding-bottom: 4px;
+}
+
+.markdown-body h2 {
+  font-size: 1.15rem;
+  border-bottom: 1px solid #f1f5f9;
+  padding-bottom: 3px;
+}
+
+.markdown-body h3 {
+  font-size: 1.05rem;
+}
+
+.markdown-body p {
+  color: #0f172a !important;
+  margin-bottom: 10px;
+}
+
+.markdown-body strong {
+  color: #0f172a !important;
+  font-weight: 700;
+}
+
+.markdown-body em {
+  color: #334155 !important;
+}
+
+.markdown-body ul,
+.markdown-body ol {
+  margin: 8px 0 12px 24px;
+  color: #0f172a !important;
+}
+
+.markdown-body li {
+  margin-bottom: 4px;
+  color: #0f172a !important;
+}
+
+.markdown-body table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 14px 0;
+  color: #0f172a !important;
+  font-size: 0.88rem;
+  background: #ffffff;
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+}
+
+.markdown-body th {
+  background: #f1f5f9;
+  color: #0f172a !important;
+  font-weight: 700;
+  border: 1px solid #cbd5e1;
+  padding: 8px 12px;
+  text-align: left;
+}
+
+.markdown-body td {
+  border: 1px solid #e2e8f0;
+  padding: 8px 12px;
+  color: #0f172a !important;
+}
+
+.markdown-body tr:nth-child(even) {
+  background: #f8faff;
+}
+
+.markdown-body code {
+  background: #eff0fe;
+  color: #4338ca !important;
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.88em;
+  font-weight: 600;
+}
+
+.markdown-body pre {
+  background: #0f172a !important;
+  color: #f8fafc !important;
+  border: 1px solid #1e293b;
+  border-radius: 8px;
+  padding: 12px 16px;
+  overflow-x: auto;
+  margin: 12px 0;
+  font-family: 'JetBrains Mono', monospace;
+  box-shadow: 0 2px 8px rgba(15, 23, 42, 0.12);
+}
+
+.markdown-body pre code {
+  background: transparent !important;
+  color: #38bdf8 !important;
+  padding: 0;
+  font-size: 0.85rem;
+}

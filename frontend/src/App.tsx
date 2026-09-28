@@ -10,7 +10,7 @@ import { fetchHealth, recallMemories, seedDemoIncidents } from './api';
 export const App: React.FC = () => {
   const [health, setHealth] = useState<HealthResponse | null>(null);
   const [healthLoading, setHealthLoading] = useState(false);
-  const [activeTab, setActiveTab] = useState<'learning' | 'agent' | 'memories' | 'telemetry'>('learning');
+  const [activeTab, setActiveTab] = useState<'agent' | 'learning' | 'memories' | 'telemetry'>('agent');
   const [activeMemories, setActiveMemories] = useState<MemoryItem[]>([]);
   const [isSeeding, setIsSeeding] = useState(false);
   const [activeService, setActiveService] = useState('checkout-service');
@@ -70,7 +70,7 @@ export const App: React.FC = () => {
       {/* Main View Container */}
       <main style={{ flex: 1, paddingBottom: '32px' }}>
         
-        {/* Tab 1: Learning & Evolution (The Stitch Screen) */}
+        {/* Tab: Learning & Evolution */}
         {activeTab === 'learning' && (
           <LearningEvolutionView />
         )}
