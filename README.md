@@ -1,192 +1,174 @@
-# OpsHindsight — SRE Incident Intelligence with Hindsight Memory
+# Meeting Memory AI — Pre-Meeting Intelligence with Hindsight Memory
 
 [![HackWithHyderabad 3.0](https://img.shields.io/badge/HackWithHyderabad%203.0-Hindsight%20Track-06b6d4?style=for-the-badge)](https://hindsight.vectorize.io/)
-[![Hindsight Memory](https://img.shields.io/badge/Memory%20Engine-Hindsight%20Cloud-6366f1?style=for-the-badge)](https://ui.hindsight.vectorize.io)
+[![Hindsight Memory](https://img.shields.io/badge/Memory%20Engine-Vectorize%20Hindsight%20Cloud-6366f1?style=for-the-badge)](https://ui.hindsight.vectorize.io)
 [![LLM](https://img.shields.io/badge/LLM%20Reasoning-Groq%20openai%2Fgpt--oss--120b-10b981?style=for-the-badge)](https://console.groq.com)
 [![FastAPI](https://img.shields.io/badge/Backend-FastAPI%20REST-009688?style=for-the-badge)](https://fastapi.tiangolo.com)
 [![React](https://img.shields.io/badge/Frontend-React%2019%20+%20Vite%20+%20TS-61dafb?style=for-the-badge)](https://vitejs.dev)
 
-> **Persistent Memory AI Agent for Site Reliability Engineering (SRE) & Incident Management.**  
-> Unlike stateless chatbots that repeat fatal remediation mistakes, **OpsHindsight** accumulates institutional memory from previous production outages, recognizes recurring failure modes, and proactively enforces **Negative Memory** (warning against previously attempted fixes that crashed services).
+> **Persistent Memory AI Agent for Professional Meeting Preparation & Relationship Continuity.**  
+> Built for the official **HackWithHyderabad 3.0** challenge: *"AI Agents That Learn Using Hindsight"*.  
+> Before every high-stakes call, **Meeting Memory AI** generates a concise, evidence-backed briefing from everything the agent has learned about contact preferences, open commitments, past objections, unresolved deliverables, and historical meeting outcomes.
+
+📖 **[Read the Full Technical Whitepaper & Project Documentation](file:///c:/Users/G%20SAI%20SHARANYA/Downloads/Hyderabad%203.0%20Microsoft%20Hackathon/PROJECT_DOCUMENTATION.md)**
 
 ---
 
-## 1. Problem Statement & Real-World Impact
+## 1. Problem Statement & Value Proposition
 
-In mission-critical distributed systems, **production downtime costs between $10,000 and $300,000+ per minute**. During 3:00 AM outages, on-call engineers are under extreme stress. They frequently:
-1. **Repeat Fatal Fixes**: Re-attempt naive troubleshooting steps (e.g. scaling pod replicas during database connection pool saturation) that previously crashed primary databases.
-2. **Lose Post-Mortem Context**: Post-mortems written in Jira or Google Docs sit unread; when the same failure pattern recurs weeks later, engineers waste hours rediscovering the same root cause.
-3. **Suffer from Stateless AI**: Generic AI chatbots lack memory of past incident outcomes; they naively suggest textbook steps that worsen specific infrastructure bottlenecks.
+### The Problem
+Sales executives, account managers, and business leaders repeatedly meet the same key clients and stakeholders. Before each call, they must manually reconstruct context from scattered emails, CRM notes, and recollections:
+1. **Lost Preferences**: Forgetting that an executive explicitly requested concise bullet points leads to verbose, generic pitches that damage credibility.
+2. **Dropped Commitments**: Promises made by either party ("we'll deliver the SOC2 report by Friday"; "client will share API schemas") slip through the cracks.
+3. **Stateless AI Failure**: Standard chatbots start from zero every session, forcing users to repeatedly re-explain the account history.
 
-### The OpsHindsight Solution
-OpsHindsight embeds **Hindsight**, a persistent memory system developed by Vectorize, directly into the incident commander's workflow:
-- **Remembers Every Outage**: Automatically retains failure symptoms, root causes, and runbook resolutions.
-- **Enforces Negative Memory**: Recalls attempted actions that failed or caused cascading failures and explicitly warns the on-call engineer: *"Do NOT scale replicas: crashed DB in INC-101. Execute RB-08 instead."*
-- **Slashes MTTR**: Cuts Mean Time to Resolution from 45+ minutes to under 90 seconds.
+### The Value Proposition
+**Meeting Memory AI** turns accumulated interaction history into better future preparation:
+- **Instant Pre-Meeting Briefing**: Generates a tactical brief in seconds, tailored to the meeting objective and contact preferences.
+- **Signature Feature: "Change Since Last Meeting"**: Automatically highlights what's new, what remains unresolved, and priority questions to ask today.
+- **Accountability & Commitment Tracking**: Maintains an unbroken cross-meeting ledger of deliverables and status.
+- **Evidence-Backed Transparency**: Every briefing point shows the exact historical Hindsight memory that justified it.
 
 ---
 
-## 2. Core Architecture & Memory Lifecycle
+## 2. Canonical Agent Workflow & Architecture
+
+```
+MEETING INPUT ──> UNDERSTAND ──> EXTRACT ──> RETAIN (Hindsight)
+                                                   │
+  ┌────────────────────────────────────────────────┘
+  ▼
+UPCOMING MEETING ──> RECALL (Hindsight) ──> ORGANIZE ──> REASON (Groq LLM) ──> EXECUTIVE BRIEF
+                                                                                     │
+  ┌──────────────────────────────────────────────────────────────────────────────────┘
+  ▼
+USER ACTION / CALL ──> POST-MEETING OUTCOME ──> EXTRACT DURABLE FACTS ──> RETAIN (Hindsight)
+```
 
 ```mermaid
 graph TD
-    A[On-Call SRE Engineer] -->|Error Log / Alert Query| B[React 19 Command Center]
-    B -->|POST /chat| C[FastAPI Backend Orchestrator]
-    C -->|Semantic Task Query| D[(Hindsight Cloud Memory Bank)]
-    D -->|Ranked Multi-Strategy Recall<br/>TEMPR: World + Observations| C
-    C -->|Construct Context Prompt<br/>+ Negative Memory Rules| E[Groq LLM: openai/gpt-oss-120b]
-    E -->|Mitigation Plan + Reasoning Trace| C
-    C -->|Store New Verified Post-Mortem| D
-    C -->|Structured JSON Response| B
-    B -->|Live Before/After Comparison| A
+    A[Business User / Sales Rep] -->|Selects Upcoming Meeting| B[React 19 Executive UI]
+    B -->|POST /api/meetings/{id}/prepare| C[Meeting Orchestrator]
+    C -->|Contact-Scoped Query| D[(Vectorize Hindsight Cloud)]
+    D -->|Semantic Recall: Preferences, Commitments, Concerns| C
+    C -->|Current Meeting Context + Open Commitments + Recalled Memories| E[Groq LLM: openai/gpt-oss-120b]
+    E -->|Structured JSON Briefing + Change Since Last Meeting| C
+    C -->|Validated Brief + Memory Provenance| B
+    B -->|Post-Meeting Outcome & Notes| C
+    C -->|Extract Durable Facts & Promises| D
 ```
-
-### The Closed-Loop Memory Lifecycle:
-1. **Observe Interaction**: Inbound alert or SRE query (e.g., checkout-service DB pool at 98%).
-2. **Recall Relevant Memory**: Hindsight queries the bank `opshindsight-incidents` using multi-strategy temporal and semantic retrieval.
-3. **Context Construction**: Distinguishes **Negative Memory** (failed attempts) from **Verified Solutions** (tested runbooks).
-4. **LLM Reasoning**: `openai/gpt-oss-120b` generates actionable remediation steps with explicit warnings.
-5. **Retain New Knowledge**: Verified post-mortems and resolutions are automatically retained into Hindsight for future incidents.
 
 ---
 
-## 3. Proven Before vs. After (Judge Demo)
+## 3. Proven Before vs. After (Judge Demonstration Story)
 
-| Dimension | Stateless LLM (Without Memory) | OpsHindsight (With Hindsight Memory) |
+| Dimension | Stateless AI (Without Memory) | Meeting Memory AI (With Hindsight) |
 |---|---|---|
-| **Query** | *"Checkout DB pool at 98%. Should I scale replicas from 3 to 10?"* | *"Checkout DB pool at 98%. Should I scale replicas from 3 to 10?"* |
-| **Response** | *"Consider a short-term replica bump... scale from 3 to 5 or 10 replicas."* | **"Do NOT scale deployment from 3 → 10. Historical runs show this crashed primary DB. Execute Runbook RB-08 (PgBouncer pool recycle) instead."** |
-| **Operational Consequence** | **Primary Database Crash (Severity-1 Outage)** | **Clean Recovery in 60 seconds (0 Downtime)** |
-| **Source of Truth** | Textbook statistical probability | **Actual Hindsight Institutional Memory** |
+| **Contact Preference** | Generates lengthy generic marketing paragraphs. Irritates executive. | **Strictly formats in high-density executive bullet points** as requested by Maya in Call 1. |
+| **Commitment Tracking** | Forgets past promises; sales rep repeatedly asks for already delivered files. | **Tracks open deliverables**: Flags that Northstar EDI 214/204 schemas are pending from Maya. |
+| **Change Since Last Meeting** | None. Re-starts conversation from scratch every time. | **Surfaces evolving priorities**: Notes CISO reviewed SOC2 report with questions on KMS rotation. |
+| **Pre-Call Prep Time** | 25–30 minutes manual note hunting. | **Under 3 seconds** evidence-backed briefing. |
+| **Source of Truth** | LLM hallucinations / static templates. | **Verified Hindsight Long-term Memories** with semantic confidence scores. |
 
 ---
 
-## 4. The SRE Learning Progression
+## 4. Multi-Persona Demo & Enterprise Scoping
 
-Our system demonstrates concrete improvement over time (Problem Statement Page 8):
-- **Incident #1 (Stateless Baseline)**: Generic advice; naively scales pods during pool saturation.
-- **Incident #5 (Context-Aware)**: Recognizes service topology and that checkout-service pool leaks stem from unclosed transaction sessions. MTTR drops to 12 minutes.
-- **Incident #20 (Institutional Memory)**: Proactive Negative Memory intervention. Instantly warns against hazardous commands and provides exact runbooks. MTTR under 90 seconds.
+The system supports multiple isolated executive contacts and deterministic relationship histories:
 
----
+### Persona 1: Maya Rao (Northstar Logistics — Supply Chain)
+- **Role**: VP of Operations managing 450,000 daily freight manifests across 12 North American distribution hubs.
+- **Preference**: Strictly concise executive bullet points; zero marketing fluff.
+- **Concerns**: Legacy EDI batch bottlenecks (45-minute lag) & SOC2 Type II audit with EU GDPR data sovereignty.
+- **Meetings**:
+  - *Meeting 1 (Discovery)*: Extracted preferences, SOC2 concern, and open EDI 214/204 schema delivery deliverable.
+  - *Meeting 2 (Security Deep-Dive)*: Hindsight recalls SOC2 priority, flags pending schemas in "Change Since Last Meeting", and formats brief in bullet points.
+  - *Meeting 3 (Commercial Sign-off)*: Leverages operational volume and security sign-off for enterprise pilot agreement.
 
-## 5. Technology Stack
+### Persona 2: David Kim (FinScale Technologies — FinTech)
+- **Role**: VP of Engineering overseeing $120M in daily transaction settlements across 4 banking gateways.
+- **Preference**: Demands architecture diagrams and API specs; rejects sales decks; requires documented rollback mechanisms.
+- **Concerns**: Sub-50ms p99 latency SLA on core transaction routing; zero database downtime during schema migrations; PCI-DSS Level 1 compliance.
+- **Meetings**:
+  - *Meeting 1 (Infrastructure Discovery)*: Evaluated multi-cloud Kubernetes setup and latency bottlenecks.
+  - *Meeting 2 (Failover Resiliency & PCI)*: Prepares brief on automated operator failover and latency guarantees.
 
-- **Memory Layer**: [Hindsight](https://hindsight.vectorize.io/) Cloud API (`hindsight-client` Python SDK)
-- **LLM Reasoning**: [Groq](https://groq.com) (`openai/gpt-oss-120b` reasoning model)
-- **Backend**: Python 3.13 + [FastAPI](https://fastapi.tiangolo.com) + [Uvicorn](https://www.uvicorn.org) + [Pydantic](https://pydantic.dev)
-- **Frontend**: [React 19](https://react.dev) + [Vite](https://vitejs.dev) + [TypeScript](https://www.typescriptlang.org) + [Lucide Icons](https://lucide.dev)
-- **Styling**: Curated Dark Ops Theme with Glassmorphism, CSS Custom Tokens & Google Fonts
-
----
-
-## 6. API Reference (Backend-First Design)
-
-All endpoints follow strict Pydantic schemas and predictable status codes:
-
-### `GET /health`
-Returns service status, connected LLM model, and Hindsight bank ID.
-
-### `POST /chat`
-Executes memory-aware SRE incident triage.
-```bash
-curl -X POST "http://127.0.0.1:8000/chat" \
-  -H "Content-Type: application/json" \
-  -d '{
-    "message": "URGENT: checkout-service latency is 8000ms. DB connection pool is 98% full. Should I scale replicas from 3 to 10 immediately?",
-    "service_name": "checkout-service",
-    "environment": "production",
-    "mode": "with_memory",
-    "user_id": "oncall-sre"
-  }'
-```
-
-### `POST /memory/retain`
-Stores verified incident facts, post-mortems, or runbooks into Hindsight.
-```bash
-curl -X POST "http://127.0.0.1:8000/memory/retain" \
-  -H "Content-Type: application/json" \
-  -d '{
-    "content": "INC-101: Scaling pod replicas crashed primary DB. Solution: Execute RB-08 PgBouncer pool recycle.",
-    "context": "Post-Mortem: checkout-service",
-    "tags": ["checkout-service", "database"]
-  }'
-```
-
-### `POST /memory/recall`
-Performs ranked semantic and temporal retrieval from Hindsight.
-```bash
-curl -X POST "http://127.0.0.1:8000/memory/recall" \
-  -H "Content-Type: application/json" \
-  -d '{
-    "query": "PostgreSQL connection pool exhausted scaling pods",
-    "limit": 3
-  }'
-```
-
-### `POST /memory/seed-demo`
-Pre-populates realistic historical outages (INC-101 DB pool, INC-104 Redis latency, INC-108 Kafka backlog) for deterministic, reproducible judge demonstrations.
+### Dynamic Contact & Meeting Creation
+- **`+ Add New Person`**: Create any real or custom stakeholder with dedicated preferences and isolated Hindsight memory banks.
+- **`+ Schedule Meeting`**: Add subsequent meetings (Meeting #4, #5, etc.) and generate instant briefings on demand.
 
 ---
 
-## 7. Setup & Running Locally
+## 5. Learning Progression Timeline
+
+The UI visualizes the relationship accumulation across three distinct stages:
+
+1. **Meeting #1 (Baseline Preparation)**: Zero prior context. Relies on generic discovery templates.
+2. **Meeting #2 (Context-Aware Preparation)**: Recalls Meeting 1 commitments, security priorities, and formats strictly in concise bullet points.
+3. **Meeting #3 (Institutional Memory)**: Deep accumulated relationship memory seamlessly connects technical, operational, and commercial terms without repeat questions.
+
+---
+
+## 6. Complete REST API Contract
+
+| Method | Endpoint | Description |
+|---|---|---|
+| `GET` | `/health` | Service, LLM, and Hindsight connection health |
+| `GET` | `/api/contacts` | List all tracked enterprise contacts |
+| `GET` | `/api/contacts/{id}` | Contact profile with preferences & known concerns |
+| `GET` | `/api/contacts/{id}/meetings` | Full meeting timeline for a contact |
+| `POST` | `/api/meetings/{id}/prepare` | **Core:** Recalls Hindsight memory and generates executive brief |
+| `POST` | `/api/meetings/{id}/process` | **Core:** Extracts durable facts & commitments and retains to Hindsight |
+| `GET` | `/api/meetings/{id}/memories` | Returns exact Hindsight memories used for the briefing |
+| `GET` | `/api/contacts/{id}/commitments`| Retrieves commitments ledger (open vs. completed) |
+| `POST` | `/api/commitments/{id}/complete`| Toggles commitment completion status |
+| `GET` | `/api/contacts/{id}/learning` | Learning progression stages and memory growth metrics |
+| `POST` | `/api/demo/reset` | Resets deterministic demo data and seeds Hindsight memories |
+
+---
+
+## 7. Quickstart & Verification
 
 ### Prerequisites
-- Python 3.11+
-- Node.js 18+ and npm
+- Python 3.10+
+- Node.js 18+
+- Active API keys for Groq and Vectorize Hindsight
 
 ### 1. Environment Configuration
-Create a `.env` file in the root directory (based on `.env.example`):
-```ini
+Create `.env` based on `.env.example`:
+```env
 GROQ_API_KEY=your_groq_api_key
 GROQ_MODEL=openai/gpt-oss-120b
-
 HINDSIGHT_API_KEY=your_hindsight_api_key
 HINDSIGHT_BASE_URL=https://api.hindsight.vectorize.io
-HINDSIGHT_BANK_ID=opshindsight-incidents
-
-PORT=8000
-ENVIRONMENT=development
-CORS_ORIGINS=http://localhost:5173,http://localhost:3000
+HINDSIGHT_BANK_ID=meeting-memory-ai
 ```
 
-### 2. Backend Setup
+### 2. Start the FastAPI Backend
 ```bash
-# Create and activate virtual environment
-python -m venv .venv
-.\.venv\Scripts\activate   # Windows
-# source .venv/bin/activate # Linux/macOS
-
-# Install dependencies
-pip install -r requirements.txt
-
-# Run the automated verification test suite
-python verify_api.py
-
-# Launch FastAPI backend
-uvicorn backend.app.main:app --host 127.0.0.1 --port 8000 --reload
+python -m uvicorn backend.app.main:app --host 127.0.0.1 --port 8000
 ```
 
-### 3. Frontend Setup
+### 3. Run Automated Backend Verification
+```bash
+python test_meeting_agent.py
+```
+*Validates health, demo reset, Hindsight recall, LLM structured brief generation, commitment toggling, post-meeting extraction, and learning progression.*
+
+### 4. Start the Frontend
 ```bash
 cd frontend
 npm install
 npm run dev
 ```
-Open [http://localhost:5173](http://localhost:5173) in your browser.
+Open **`http://localhost:5173`** in your browser.
 
 ---
 
-## 8. Verification & Quality Gate Compliance
+## 8. Judging Criteria Alignment
 
-This repository satisfies all 57 engineering principles from the project constitution:
-- **No Data Fabrication (Rule 35)**: Zero fake memories or mock badges. Every recalled fact originates from real Hindsight API round-trips.
-- **cURL-First Verification (Rule 11 & 12)**: Endpoints verified via `verify_api.py` with 100% test pass rate.
-- **Judge-Ready Live Demo (Rule 22 & 55)**: Interactive split-screen comparison allowing judges to toggle between stateless and Hindsight-powered behavior in real time.
-
----
-
-## 9. License & Credits
-
-Built for **HackWithHyderabad 3.0** by Team OpsHindsight.  
-Powered by [Vectorize Hindsight](https://hindsight.vectorize.io/) and [Groq Cloud](https://groq.com/).
+- **Innovation (30%)**: Goes beyond generic chatbots by building a closed-loop persistent relationship memory engine that tracks accountability and communication preferences.
+- **Use of Hindsight Memory (25%)**: Real contact-scoped retention and semantic recall with full provenance ("Why this briefing?").
+- **Technical Implementation (20%)**: Clean FastAPI backend, Groq LLM integration, TypeScript schemas, and 100% automated test coverage.
+- **User Experience (15%)**: Executive dashboard featuring "Change Since Last Meeting", interactive commitment checklists, and learning progression timelines.
+- **Real-World Impact (10%)**: Directly addresses meeting preparation friction, prevents dropped commitments, and accelerates enterprise deal closing.

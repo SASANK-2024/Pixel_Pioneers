@@ -51,3 +51,6 @@ dist-ssr/
 # OS
 .DS_Store
 Thumbs.db
+
+# Temp artifacts
+stitch_*

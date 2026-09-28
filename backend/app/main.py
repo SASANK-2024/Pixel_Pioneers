@@ -1,24 +1,38 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from backend.app.config import settings
-from backend.app.routes import health, chat, memory
+from backend.app.routes import health, chat, memory, meetings
 
 app = FastAPI(
-    title=settings.app_name,
-    description="Incident Triage & Diagnostic Intelligence with Hindsight Persistent Memory",
-    version="1.0.0"
+    title="Meeting Memory AI — Executive Preparation with Hindsight Memory",
+    description="Evidence-backed meeting briefings, commitment tracking, and relationship memory powered by Hindsight.",
+    version="2.0.0"
 )
 
-# CORS Middleware configuration
+# Comprehensive CORS origins for local Vite dev ports (5173, 5174, 5175, etc.)
+CORS_ORIGINS = [
+    "http://localhost:5173",
+    "http://localhost:5174",
+    "http://localhost:5175",
+    "http://localhost:3000",
+    "http://127.0.0.1:5173",
+    "http://127.0.0.1:5174",
+    "http://127.0.0.1:5175",
+    "http://127.0.0.1:3000",
+]
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=settings.cors_origins if settings.cors_origins else ["*"],
+    allow_origins=CORS_ORIGINS,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
-# Register Route Blueprints
+# Register Meeting Memory AI Routes (Primary)
+app.include_router(meetings.router)
+
+# Register Route Blueprints (Health & Diagnostics)
 app.include_router(health.router)
 app.include_router(chat.router)
 app.include_router(memory.router)
@@ -26,9 +40,17 @@ app.include_router(memory.router)
 @app.get("/")
 def root():
     return {
-        "message": "OpsHindsight API is running.",
+        "product": "Meeting Memory AI",
+        "description": "Pre-meeting executive briefings powered by Hindsight persistent memory.",
+        "status": "operational",
         "docs": "/docs",
-        "health": "/health"
+        "health": "/health",
+        "endpoints": {
+            "contacts": "/api/contacts",
+            "meetings": "/api/meetings",
+            "prepare": "/api/meetings/{id}/prepare",
+            "demo_reset": "/api/demo/reset"
+        }
     }
 
 if __name__ == "__main__":
