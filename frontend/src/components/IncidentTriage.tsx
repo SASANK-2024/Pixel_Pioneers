@@ -1,8 +1,4 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { 
-  CheckCircle2, Zap, Brain, Sparkles, Layers, RotateCcw,
-  User, Bot, ChevronDown, ChevronUp, Copy, Check
-} from 'lucide-react';
 import type { ChatResponse, MemoryItem } from '../types';
 import { sendIncidentChat } from '../api';
 
@@ -91,7 +87,6 @@ export const IncidentTriage: React.FC<IncidentTriageProps> = ({
     setLoading(true);
     setError(null);
 
-    // Format previous conversation turns for backend multi-turn context
     const historyPayload = messages.map(m => ({
       role: m.role,
       content: m.content
@@ -104,14 +99,13 @@ export const IncidentTriage: React.FC<IncidentTriageProps> = ({
         id: userMessageId,
         role: 'user',
         content: currentQuery,
-        timestamp: new Date().toLocaleTimeString()
+        timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
       }
     ];
     setMessages(newMessages);
 
     try {
       if (isSplitMode) {
-        // Run both modes side-by-side for comparison
         const [resWith, resWithout] = await Promise.all([
           sendIncidentChat(currentQuery, activeService, 'with_memory', historyPayload, environment),
           sendIncidentChat(currentQuery, activeService, 'without_memory', historyPayload, environment)
@@ -119,7 +113,6 @@ export const IncidentTriage: React.FC<IncidentTriageProps> = ({
         setSplitResult({ withMem: resWith, withoutMem: resWithout });
         onMemoryUsed(resWith.memories_retrieved);
 
-        // Add assistant response to conversation thread
         setMessages([
           ...newMessages,
           {
@@ -130,7 +123,7 @@ export const IncidentTriage: React.FC<IncidentTriageProps> = ({
             mode: 'with_memory',
             memories: resWith.memories_retrieved,
             newMemoryRetained: resWith.new_memory_retained,
-            timestamp: new Date().toLocaleTimeString()
+            timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
           }
         ]);
       } else {
@@ -147,7 +140,7 @@ export const IncidentTriage: React.FC<IncidentTriageProps> = ({
             mode: res.mode,
             memories: res.memories_retrieved,
             newMemoryRetained: res.new_memory_retained,
-            timestamp: new Date().toLocaleTimeString()
+            timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
           }
         ]);
       }
@@ -166,23 +159,23 @@ export const IncidentTriage: React.FC<IncidentTriageProps> = ({
     <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
       
       {/* Top Incident Control Panel */}
-      <div className="glass-panel" style={{ padding: '24px' }}>
+      <div className="card-base" style={{ padding: '24px', background: '#ffffff' }}>
         
         {/* Scenarios and Service Picker */}
         <div style={{ marginBottom: '16px' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
-            <label style={{ fontSize: '0.85rem', fontWeight: 600, color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+            <label style={{ fontSize: '0.85rem', fontWeight: 700, color: '#464555', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
               Select Production Incident Scenario:
             </label>
             <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
-              <span style={{ fontSize: '0.8rem', color: '#64748b' }}>Target Service:</span>
+              <span style={{ fontSize: '0.8rem', color: '#777587' }}>Target Service:</span>
               <select
                 value={activeService}
                 onChange={(e) => setActiveService(e.target.value)}
                 style={{
-                  background: '#0f172a',
-                  color: '#38bdf8',
-                  border: '1px solid rgba(56, 189, 248, 0.3)',
+                  background: '#f8faff',
+                  color: '#3525cd',
+                  border: '1px solid #c7d2fe',
                   padding: '4px 10px',
                   borderRadius: '6px',
                   fontSize: '0.8rem',
@@ -204,19 +197,20 @@ export const IncidentTriage: React.FC<IncidentTriageProps> = ({
                 key={idx}
                 onClick={() => handleSelectPreset(p)}
                 style={{
-                  background: activeService === p.service ? 'rgba(6, 182, 212, 0.15)' : 'rgba(255, 255, 255, 0.03)',
-                  border: `1px solid ${activeService === p.service ? '#06b6d4' : 'rgba(255, 255, 255, 0.08)'}`,
+                  background: activeService === p.service ? '#eff0fe' : '#ffffff',
+                  border: `1px solid ${activeService === p.service ? '#4f46e5' : '#e2e8f0'}`,
                   borderRadius: '8px',
                   padding: '10px 12px',
                   textAlign: 'left',
                   cursor: 'pointer',
-                  transition: 'all 0.2s ease'
+                  transition: 'all 0.2s ease',
+                  boxShadow: activeService === p.service ? '0 2px 8px rgba(79, 70, 229, 0.12)' : 'none'
                 }}
               >
-                <div style={{ fontSize: '0.82rem', fontWeight: 700, color: activeService === p.service ? '#38bdf8' : '#e2e8f0', marginBottom: '2px' }}>
+                <div style={{ fontSize: '0.82rem', fontWeight: 700, color: activeService === p.service ? '#3525cd' : '#0b1c30', marginBottom: '2px' }}>
                   {p.title}
                 </div>
-                <div style={{ fontSize: '0.72rem', color: '#94a3b8', lineHeight: 1.3 }}>
+                <div style={{ fontSize: '0.74rem', color: '#464555', lineHeight: 1.3 }}>
                   {p.description}
                 </div>
               </button>
@@ -227,7 +221,7 @@ export const IncidentTriage: React.FC<IncidentTriageProps> = ({
         {/* Input Textarea */}
         <div style={{ marginBottom: '16px' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
-            <label style={{ fontSize: '0.85rem', fontWeight: 600, color: '#94a3b8' }}>
+            <label style={{ fontSize: '0.85rem', fontWeight: 700, color: '#0b1c30' }}>
               On-Call Incident Query / Follow-up Question:
             </label>
             {messages.length > 0 && (
@@ -236,7 +230,7 @@ export const IncidentTriage: React.FC<IncidentTriageProps> = ({
                 style={{
                   background: 'transparent',
                   border: 'none',
-                  color: '#64748b',
+                  color: '#777587',
                   fontSize: '0.75rem',
                   display: 'flex',
                   alignItems: 'center',
@@ -244,7 +238,7 @@ export const IncidentTriage: React.FC<IncidentTriageProps> = ({
                   cursor: 'pointer'
                 }}
               >
-                <RotateCcw size={12} />
+                <span className="material-symbols-outlined" style={{ fontSize: '15px' }}>restart_alt</span>
                 <span>Reset Chat History</span>
               </button>
             )}
@@ -262,16 +256,16 @@ export const IncidentTriage: React.FC<IncidentTriageProps> = ({
             placeholder="Type your incident alert, or ask about previous questions/answers (e.g. 'what was the answer to my previous question?')..."
             style={{
               width: '100%',
-              background: '#090d16',
-              border: '1px solid rgba(255, 255, 255, 0.12)',
+              background: '#f8faff',
+              border: '1px solid #cbd5e1',
               borderRadius: '8px',
               padding: '12px 14px',
-              color: '#f8fafc',
+              color: '#0b1c30',
               fontSize: '0.9rem',
-              fontFamily: 'var(--font-sans)',
+              fontFamily: 'inherit',
               resize: 'vertical',
               outline: 'none',
-              boxShadow: 'inset 0 2px 4px rgba(0,0,0,0.5)'
+              boxShadow: 'inset 0 1px 3px rgba(0,0,0,0.04)'
             }}
           />
         </div>
@@ -287,33 +281,32 @@ export const IncidentTriage: React.FC<IncidentTriageProps> = ({
                 display: 'flex',
                 alignItems: 'center',
                 gap: '6px',
-                background: isSplitMode ? 'rgba(168, 85, 247, 0.25)' : 'rgba(255, 255, 255, 0.05)',
-                border: `1px solid ${isSplitMode ? '#a855f7' : 'rgba(255, 255, 255, 0.1)'}`,
-                color: isSplitMode ? '#d8b4fe' : '#94a3b8',
-                padding: '6px 12px',
+                background: isSplitMode ? '#f5f3ff' : '#f8faff',
+                border: `1px solid ${isSplitMode ? '#7c3aed' : '#e2e8f0'}`,
+                color: isSplitMode ? '#7c3aed' : '#464555',
+                padding: '6px 14px',
                 borderRadius: '8px',
                 fontSize: '0.8rem',
                 fontWeight: 600,
                 cursor: 'pointer'
               }}
             >
-              <Layers size={15} />
+              <span className="material-symbols-outlined" style={{ fontSize: '16px' }}>compare_arrows</span>
               <span>Side-by-Side Comparison (Judge Demo)</span>
             </button>
 
             {!isSplitMode && (
               <div style={{
                 display: 'flex',
-                background: 'rgba(0, 0, 0, 0.4)',
-                border: '1px solid rgba(255, 255, 255, 0.1)',
+                background: '#f1f5f9',
                 borderRadius: '8px',
                 padding: '3px'
               }}>
                 <button
                   onClick={() => setMode('with_memory')}
                   style={{
-                    background: mode === 'with_memory' ? '#0891b2' : 'transparent',
-                    color: mode === 'with_memory' ? '#ffffff' : '#94a3b8',
+                    background: mode === 'with_memory' ? '#ffffff' : 'transparent',
+                    color: mode === 'with_memory' ? '#3525cd' : '#464555',
                     border: 'none',
                     padding: '5px 12px',
                     borderRadius: '6px',
@@ -322,17 +315,18 @@ export const IncidentTriage: React.FC<IncidentTriageProps> = ({
                     cursor: 'pointer',
                     display: 'flex',
                     alignItems: 'center',
-                    gap: '5px'
+                    gap: '5px',
+                    boxShadow: mode === 'with_memory' ? '0 1px 3px rgba(0,0,0,0.1)' : 'none'
                   }}
                 >
-                  <Brain size={14} />
+                  <span className="material-symbols-outlined" style={{ fontSize: '15px' }}>psychology</span>
                   <span>With Hindsight Memory</span>
                 </button>
                 <button
                   onClick={() => setMode('without_memory')}
                   style={{
-                    background: mode === 'without_memory' ? '#475569' : 'transparent',
-                    color: mode === 'without_memory' ? '#ffffff' : '#94a3b8',
+                    background: mode === 'without_memory' ? '#ffffff' : 'transparent',
+                    color: mode === 'without_memory' ? '#ba1a1a' : '#464555',
                     border: 'none',
                     padding: '5px 12px',
                     borderRadius: '6px',
@@ -341,7 +335,8 @@ export const IncidentTriage: React.FC<IncidentTriageProps> = ({
                     cursor: 'pointer',
                     display: 'flex',
                     alignItems: 'center',
-                    gap: '5px'
+                    gap: '5px',
+                    boxShadow: mode === 'without_memory' ? '0 1px 3px rgba(0,0,0,0.1)' : 'none'
                   }}
                 >
                   <span>Stateless Baseline (No Memory)</span>
@@ -358,30 +353,30 @@ export const IncidentTriage: React.FC<IncidentTriageProps> = ({
               display: 'flex',
               alignItems: 'center',
               gap: '8px',
-              background: 'linear-gradient(135deg, #06b6d4 0%, #2563eb 100%)',
+              background: 'linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%)',
               color: '#ffffff',
               border: 'none',
-              padding: '10px 24px',
+              padding: '10px 22px',
               borderRadius: '8px',
               fontSize: '0.9rem',
               fontWeight: 700,
               cursor: loading ? 'not-allowed' : 'pointer',
-              boxShadow: '0 4px 15px rgba(6, 182, 212, 0.35)',
+              boxShadow: '0 4px 14px rgba(79, 70, 229, 0.3)',
               opacity: loading ? 0.7 : 1,
               transition: 'all 0.2s ease'
             }}
           >
-            <Zap size={16} />
-            <span>{loading ? 'Processing...' : 'Run Incident Triage'}</span>
+            <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>bolt</span>
+            <span>{loading ? 'Consulting Hindsight...' : 'Run Incident Triage'}</span>
           </button>
         </div>
 
         {error && (
           <div style={{
             marginTop: '16px',
-            background: 'rgba(244, 63, 94, 0.15)',
-            border: '1px solid #f43f5e',
-            color: '#fecdd3',
+            background: '#fef2f2',
+            border: '1px solid #fecaca',
+            color: '#ba1a1a',
             padding: '10px 14px',
             borderRadius: '8px',
             fontSize: '0.85rem'
@@ -396,29 +391,29 @@ export const IncidentTriage: React.FC<IncidentTriageProps> = ({
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px' }}>
           
           {/* Stateless Column */}
-          <div className="glass-panel" style={{ padding: '20px', borderLeft: '4px solid #64748b' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '14px' }}>
-              <div style={{ padding: '4px 8px', borderRadius: '6px', background: 'rgba(100, 116, 139, 0.2)', color: '#94a3b8', fontSize: '0.75rem', fontWeight: 700 }}>
+          <div className="card-base" style={{ padding: '20px', borderLeft: '4px solid #ba1a1a', background: '#fef2f2' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '12px' }}>
+              <div style={{ padding: '3px 8px', borderRadius: '6px', background: '#fee2e2', color: '#991b1b', fontSize: '0.75rem', fontWeight: 800 }}>
                 STATELESS BASELINE (NO MEMORY)
               </div>
-              <span style={{ fontSize: '0.75rem', color: '#f43f5e' }}>⚠️ Naively repeats failed actions</span>
+              <span style={{ fontSize: '0.75rem', color: '#ba1a1a' }}>⚠️ Naively repeats failed actions</span>
             </div>
-            <div style={{ fontSize: '0.88rem', color: '#cbd5e1', lineHeight: 1.6, whiteSpace: 'pre-wrap' }}>
+            <div style={{ fontSize: '0.88rem', color: '#464555', lineHeight: 1.6, whiteSpace: 'pre-wrap' }}>
               {splitResult.withoutMem.response}
             </div>
           </div>
 
           {/* OpsHindsight Column */}
-          <div className="glass-panel-glow" style={{ padding: '20px', borderLeft: '4px solid #06b6d4' }}>
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '14px' }}>
+          <div className="card-elevated" style={{ padding: '20px', borderLeft: '4px solid #059669', background: '#ffffff' }}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '12px' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                <div style={{ padding: '4px 8px', borderRadius: '6px', background: 'rgba(6, 182, 212, 0.2)', color: '#38bdf8', fontSize: '0.75rem', fontWeight: 700 }}>
-                  OPSHINDSIGHT (WITH HINDSIGHT MEMORY)
+                <div style={{ padding: '3px 8px', borderRadius: '6px', background: '#ecfdf5', color: '#047857', fontSize: '0.75rem', fontWeight: 800 }}>
+                  RECALLAI + HINDSIGHT MEMORY
                 </div>
-                <span style={{ fontSize: '0.75rem', color: '#10b981' }}>🛡️ Grounded in {splitResult.withMem.memories_retrieved.length} memories</span>
+                <span style={{ fontSize: '0.75rem', color: '#059669', fontWeight: 600 }}>🛡️ Grounded in {splitResult.withMem.memories_retrieved.length} memories</span>
               </div>
             </div>
-            <div style={{ fontSize: '0.88rem', color: '#e2e8f0', lineHeight: 1.6, whiteSpace: 'pre-wrap' }}>
+            <div style={{ fontSize: '0.88rem', color: '#0b1c30', lineHeight: 1.6, whiteSpace: 'pre-wrap' }}>
               {splitResult.withMem.response}
             </div>
           </div>
@@ -432,10 +427,11 @@ export const IncidentTriage: React.FC<IncidentTriageProps> = ({
           {messages.map((msg) => (
             <div
               key={msg.id}
-              className={msg.role === 'assistant' ? 'glass-panel-glow' : 'glass-panel'}
+              className={msg.role === 'assistant' ? 'card-elevated' : 'card-base'}
               style={{
                 padding: '20px',
-                borderLeft: msg.role === 'user' ? '4px solid #38bdf8' : '4px solid #10b981'
+                background: msg.role === 'user' ? '#f8faff' : '#ffffff',
+                borderLeft: msg.role === 'user' ? '4px solid #4f46e5' : '4px solid #059669'
               }}
             >
               {/* Message Header */}
@@ -446,33 +442,33 @@ export const IncidentTriage: React.FC<IncidentTriageProps> = ({
                       width: '28px',
                       height: '28px',
                       borderRadius: '6px',
-                      background: 'rgba(56, 189, 248, 0.2)',
+                      background: '#eff0fe',
                       display: 'flex',
                       alignItems: 'center',
                       justifyContent: 'center',
-                      color: '#38bdf8'
+                      color: '#4f46e5'
                     }}>
-                      <User size={16} />
+                      <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>person</span>
                     </div>
                   ) : (
                     <div style={{
                       width: '28px',
                       height: '28px',
                       borderRadius: '6px',
-                      background: 'rgba(16, 185, 129, 0.2)',
+                      background: '#ecfdf5',
                       display: 'flex',
                       alignItems: 'center',
                       justifyContent: 'center',
-                      color: '#10b981'
+                      color: '#059669'
                     }}>
-                      <Bot size={16} />
+                      <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>smart_toy</span>
                     </div>
                   )}
                   <div>
-                    <span style={{ fontSize: '0.85rem', fontWeight: 700, color: msg.role === 'user' ? '#38bdf8' : '#10b981' }}>
-                      {msg.role === 'user' ? 'On-Call SRE Engineer' : 'OpsHindsight Assistant'}
+                    <span style={{ fontSize: '0.85rem', fontWeight: 700, color: msg.role === 'user' ? '#3525cd' : '#047857' }}>
+                      {msg.role === 'user' ? 'Sharanya (On-Call SRE)' : 'RecallAI Assistant'}
                     </span>
-                    <span style={{ fontSize: '0.72rem', color: '#64748b', marginLeft: '8px' }}>
+                    <span style={{ fontSize: '0.72rem', color: '#777587', marginLeft: '8px' }}>
                       {msg.timestamp}
                     </span>
                   </div>
@@ -486,8 +482,8 @@ export const IncidentTriage: React.FC<IncidentTriageProps> = ({
                       fontWeight: 700,
                       padding: '2px 8px',
                       borderRadius: '4px',
-                      background: msg.mode === 'with_memory' ? 'rgba(6, 182, 212, 0.15)' : 'rgba(100, 116, 139, 0.2)',
-                      color: msg.mode === 'with_memory' ? '#38bdf8' : '#94a3b8'
+                      background: msg.mode === 'with_memory' ? '#ecfdf5' : '#fef2f2',
+                      color: msg.mode === 'with_memory' ? '#047857' : '#ba1a1a'
                     }}>
                       {msg.mode === 'with_memory' ? 'HINDSIGHT MEMORY' : 'STATELESS'}
                     </span>
@@ -497,7 +493,7 @@ export const IncidentTriage: React.FC<IncidentTriageProps> = ({
                     style={{
                       background: 'transparent',
                       border: 'none',
-                      color: '#64748b',
+                      color: '#777587',
                       cursor: 'pointer',
                       display: 'flex',
                       alignItems: 'center',
@@ -505,13 +501,15 @@ export const IncidentTriage: React.FC<IncidentTriageProps> = ({
                     }}
                     title="Copy message text"
                   >
-                    {copiedId === msg.id ? <Check size={14} color="#10b981" /> : <Copy size={14} />}
+                    <span className="material-symbols-outlined" style={{ fontSize: '16px', color: copiedId === msg.id ? '#059669' : '#777587' }}>
+                      {copiedId === msg.id ? 'check' : 'content_copy'}
+                    </span>
                   </button>
                 </div>
               </div>
 
               {/* Message Content */}
-              <div style={{ fontSize: '0.92rem', color: '#e2e8f0', lineHeight: 1.7, whiteSpace: 'pre-wrap' }}>
+              <div style={{ fontSize: '0.92rem', color: '#0b1c30', lineHeight: 1.7, whiteSpace: 'pre-wrap' }}>
                 {msg.content}
               </div>
 
@@ -520,17 +518,17 @@ export const IncidentTriage: React.FC<IncidentTriageProps> = ({
                 <div style={{
                   marginTop: '12px',
                   paddingTop: '10px',
-                  borderTop: '1px solid rgba(255, 255, 255, 0.06)',
+                  borderTop: '1px solid #f1f5f9',
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'space-between',
                   flexWrap: 'wrap',
                   gap: '8px',
                   fontSize: '0.75rem',
-                  color: '#94a3b8'
+                  color: '#464555'
                 }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '5px', color: '#10b981' }}>
-                    <CheckCircle2 size={13} />
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '5px', color: '#047857' }}>
+                    <span className="material-symbols-outlined material-symbols-fill" style={{ fontSize: '15px' }}>verified</span>
                     <span>Grounded in {msg.memories.length} Hindsight historical incident memories</span>
                   </div>
 
@@ -540,7 +538,7 @@ export const IncidentTriage: React.FC<IncidentTriageProps> = ({
                       style={{
                         background: 'transparent',
                         border: 'none',
-                        color: '#818cf8',
+                        color: '#4f46e5',
                         cursor: 'pointer',
                         display: 'flex',
                         alignItems: 'center',
@@ -549,9 +547,11 @@ export const IncidentTriage: React.FC<IncidentTriageProps> = ({
                         fontWeight: 600
                       }}
                     >
-                      <Sparkles size={12} />
+                      <span className="material-symbols-outlined" style={{ fontSize: '14px' }}>psychology</span>
                       <span>{expandedReasoning[msg.id] ? 'Hide Reasoning' : 'View AI Reasoning Trace'}</span>
-                      {expandedReasoning[msg.id] ? <ChevronUp size={12} /> : <ChevronDown size={12} />}
+                      <span className="material-symbols-outlined" style={{ fontSize: '14px' }}>
+                        {expandedReasoning[msg.id] ? 'expand_less' : 'expand_more'}
+                      </span>
                     </button>
                   )}
                 </div>
@@ -563,10 +563,10 @@ export const IncidentTriage: React.FC<IncidentTriageProps> = ({
                   marginTop: '10px',
                   padding: '10px 14px',
                   borderRadius: '6px',
-                  background: 'rgba(15, 23, 42, 0.8)',
-                  border: '1px solid rgba(99, 102, 241, 0.25)',
+                  background: '#f8faff',
+                  border: '1px solid #c7d2fe',
                   fontSize: '0.78rem',
-                  color: '#c7d2fe',
+                  color: '#3525cd',
                   lineHeight: 1.5,
                   fontStyle: 'italic'
                 }}>

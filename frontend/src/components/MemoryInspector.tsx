@@ -1,5 +1,4 @@
 import React, { useState } from 'react';
-import { Database, Search, PlusCircle, AlertOctagon } from 'lucide-react';
 import type { MemoryItem } from '../types';
 import { recallMemories, retainMemory } from '../api';
 
@@ -24,7 +23,7 @@ export const MemoryInspector: React.FC<MemoryInspectorProps> = ({ activeMemories
     if (!searchQuery.trim()) return;
     setSearching(true);
     try {
-      const results = await recallMemories(searchQuery, 6);
+      const results = await recallMemories(searchQuery, 8);
       setSearchResults(results);
     } catch (err) {
       console.error(err);
@@ -55,27 +54,28 @@ export const MemoryInspector: React.FC<MemoryInspectorProps> = ({ activeMemories
   const displayedMemories = searchResults !== null ? searchResults : activeMemories;
 
   return (
-    <div className="glass-panel" style={{ padding: '24px', display: 'flex', flexDirection: 'column', gap: '16px' }}>
+    <div className="card-base" style={{ padding: '24px', background: '#ffffff', display: 'flex', flexDirection: 'column', gap: '16px' }}>
       
       {/* Title & Add Action */}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
           <div style={{
-            width: '32px',
-            height: '32px',
+            width: '36px',
+            height: '36px',
             borderRadius: '8px',
-            background: 'rgba(99, 102, 241, 0.2)',
+            background: '#eff0fe',
             display: 'flex',
             alignItems: 'center',
-            justifyContent: 'center'
+            justifyContent: 'center',
+            color: '#4f46e5'
           }}>
-            <Database size={18} color="#818cf8" />
+            <span className="material-symbols-outlined" style={{ fontSize: '22px' }}>psychology</span>
           </div>
           <div>
-            <h2 style={{ fontSize: '1.05rem', fontWeight: 700, color: '#f8fafc' }}>
+            <h2 style={{ fontSize: '1.1rem', fontWeight: 800, color: '#0b1c30' }}>
               Hindsight Persistent Memory Store
             </h2>
-            <p style={{ fontSize: '0.75rem', color: '#94a3b8' }}>
+            <p style={{ fontSize: '0.78rem', color: '#464555' }}>
               Multi-strategy temporal and semantic facts extracted from incident history
             </p>
           </div>
@@ -84,20 +84,21 @@ export const MemoryInspector: React.FC<MemoryInspectorProps> = ({ activeMemories
         <button
           onClick={() => setShowAddModal(true)}
           style={{
-            display: 'flex',
+            display: 'inline-flex',
             alignItems: 'center',
             gap: '6px',
-            background: 'rgba(99, 102, 241, 0.15)',
-            border: '1px solid rgba(99, 102, 241, 0.35)',
-            color: '#a5b4fc',
+            background: '#eff0fe',
+            border: '1px solid #c7d2fe',
+            color: '#3525cd',
             padding: '6px 12px',
             borderRadius: '6px',
             fontSize: '0.78rem',
-            fontWeight: 600,
-            cursor: 'pointer'
+            fontWeight: 700,
+            cursor: 'pointer',
+            transition: 'all 0.15s ease'
           }}
         >
-          <PlusCircle size={14} />
+          <span className="material-symbols-outlined" style={{ fontSize: '16px' }}>add_circle</span>
           <span>Retain Post-Mortem</span>
         </button>
       </div>
@@ -105,7 +106,9 @@ export const MemoryInspector: React.FC<MemoryInspectorProps> = ({ activeMemories
       {/* Memory Search Bar */}
       <form onSubmit={handleSearch} style={{ display: 'flex', gap: '8px' }}>
         <div style={{ position: 'relative', flex: 1 }}>
-          <Search size={15} color="#64748b" style={{ position: 'absolute', left: '10px', top: '10px' }} />
+          <span className="material-symbols-outlined" style={{ position: 'absolute', left: '10px', top: '9px', fontSize: '18px', color: '#777587' }}>
+            search
+          </span>
           <input
             type="text"
             value={searchQuery}
@@ -113,12 +116,12 @@ export const MemoryInspector: React.FC<MemoryInspectorProps> = ({ activeMemories
             placeholder="Search recalled memories by symptom, service, or runbook..."
             style={{
               width: '100%',
-              background: '#090d16',
-              border: '1px solid rgba(255, 255, 255, 0.1)',
+              background: '#f8faff',
+              border: '1px solid #cbd5e1',
               borderRadius: '6px',
-              padding: '7px 10px 7px 32px',
-              color: '#f8fafc',
-              fontSize: '0.82rem',
+              padding: '8px 10px 8px 36px',
+              color: '#0b1c30',
+              fontSize: '0.85rem',
               outline: 'none'
             }}
           />
@@ -127,10 +130,10 @@ export const MemoryInspector: React.FC<MemoryInspectorProps> = ({ activeMemories
           type="submit"
           disabled={searching}
           style={{
-            background: '#1e293b',
-            color: '#f1f5f9',
-            border: '1px solid rgba(255, 255, 255, 0.15)',
-            padding: '7px 14px',
+            background: '#4f46e5',
+            color: '#ffffff',
+            border: 'none',
+            padding: '8px 16px',
             borderRadius: '6px',
             fontSize: '0.8rem',
             fontWeight: 600,
@@ -145,9 +148,9 @@ export const MemoryInspector: React.FC<MemoryInspectorProps> = ({ activeMemories
             onClick={() => setSearchResults(null)}
             style={{
               background: 'transparent',
-              color: '#94a3b8',
-              border: '1px solid rgba(255, 255, 255, 0.1)',
-              padding: '7px 10px',
+              color: '#464555',
+              border: '1px solid #cbd5e1',
+              padding: '8px 12px',
               borderRadius: '6px',
               fontSize: '0.78rem',
               cursor: 'pointer'
@@ -161,8 +164,8 @@ export const MemoryInspector: React.FC<MemoryInspectorProps> = ({ activeMemories
       {/* Add Memory Modal / Accordion */}
       {showAddModal && (
         <form onSubmit={handleSaveMemory} style={{
-          background: '#0b111e',
-          border: '1px solid rgba(99, 102, 241, 0.3)',
+          background: '#f8faff',
+          border: '1px solid #c7d2fe',
           borderRadius: '8px',
           padding: '16px',
           display: 'flex',
@@ -170,13 +173,13 @@ export const MemoryInspector: React.FC<MemoryInspectorProps> = ({ activeMemories
           gap: '10px'
         }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-            <span style={{ fontSize: '0.82rem', fontWeight: 700, color: '#a5b4fc' }}>
+            <span style={{ fontSize: '0.82rem', fontWeight: 700, color: '#3525cd' }}>
               Add New Incident Memory to Hindsight:
             </span>
             <button
               type="button"
               onClick={() => setShowAddModal(false)}
-              style={{ background: 'transparent', border: 'none', color: '#64748b', cursor: 'pointer', fontSize: '0.8rem' }}
+              style={{ background: 'transparent', border: 'none', color: '#777587', cursor: 'pointer', fontSize: '0.9rem' }}
             >
               ✕
             </button>
@@ -187,11 +190,11 @@ export const MemoryInspector: React.FC<MemoryInspectorProps> = ({ activeMemories
             onChange={(e) => setNewContext(e.target.value)}
             placeholder="Context (e.g. Post-Mortem RB-08, Failed Action)"
             style={{
-              background: '#06090e',
-              border: '1px solid rgba(255, 255, 255, 0.1)',
+              background: '#ffffff',
+              border: '1px solid #cbd5e1',
               borderRadius: '6px',
-              padding: '6px 10px',
-              color: '#f8fafc',
+              padding: '7px 10px',
+              color: '#0b1c30',
               fontSize: '0.8rem'
             }}
           />
@@ -201,11 +204,11 @@ export const MemoryInspector: React.FC<MemoryInspectorProps> = ({ activeMemories
             rows={2}
             placeholder="Incident fact, root cause, or negative outcome to store into persistent memory..."
             style={{
-              background: '#06090e',
-              border: '1px solid rgba(255, 255, 255, 0.1)',
+              background: '#ffffff',
+              border: '1px solid #cbd5e1',
               borderRadius: '6px',
               padding: '8px 10px',
-              color: '#f8fafc',
+              color: '#0b1c30',
               fontSize: '0.8rem',
               resize: 'none'
             }}
@@ -218,7 +221,7 @@ export const MemoryInspector: React.FC<MemoryInspectorProps> = ({ activeMemories
                 background: saveSuccess ? '#059669' : '#4f46e5',
                 color: '#ffffff',
                 border: 'none',
-                padding: '6px 14px',
+                padding: '7px 16px',
                 borderRadius: '6px',
                 fontSize: '0.8rem',
                 fontWeight: 600,
@@ -232,9 +235,9 @@ export const MemoryInspector: React.FC<MemoryInspectorProps> = ({ activeMemories
       )}
 
       {/* Memory List Cards */}
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', maxHeight: '420px', overflowY: 'auto' }}>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', maxHeight: '480px', overflowY: 'auto' }}>
         {displayedMemories.length === 0 ? (
-          <div style={{ textAlign: 'center', padding: '30px 10px', color: '#64748b', fontSize: '0.85rem' }}>
+          <div style={{ textAlign: 'center', padding: '30px 10px', color: '#777587', fontSize: '0.85rem' }}>
             No memories loaded yet. Click <strong>"Seed Demo Data"</strong> in the top bar to populate realistic historical post-mortems!
           </div>
         ) : (
@@ -246,8 +249,8 @@ export const MemoryInspector: React.FC<MemoryInspectorProps> = ({ activeMemories
               <div
                 key={idx}
                 style={{
-                  background: isNegativeMemory ? 'rgba(244, 63, 94, 0.06)' : 'rgba(255, 255, 255, 0.02)',
-                  border: `1px solid ${isNegativeMemory ? 'rgba(244, 63, 94, 0.25)' : 'rgba(255, 255, 255, 0.06)'}`,
+                  background: isNegativeMemory ? '#fef2f2' : '#f8faff',
+                  border: `1px solid ${isNegativeMemory ? '#fecaca' : '#e2e8f0'}`,
                   borderRadius: '8px',
                   padding: '12px',
                   display: 'flex',
@@ -259,45 +262,49 @@ export const MemoryInspector: React.FC<MemoryInspectorProps> = ({ activeMemories
                   <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
                     {isNegativeMemory ? (
                       <span style={{
-                        background: 'rgba(244, 63, 94, 0.2)',
-                        color: '#f43f5e',
+                        background: '#fee2e2',
+                        color: '#ba1a1a',
                         fontSize: '0.68rem',
                         fontWeight: 700,
                         padding: '1px 6px',
                         borderRadius: '4px',
-                        display: 'flex',
+                        display: 'inline-flex',
                         alignItems: 'center',
                         gap: '3px'
                       }}>
-                        <AlertOctagon size={11} />
+                        <span className="material-symbols-outlined" style={{ fontSize: '13px' }}>error</span>
                         NEGATIVE MEMORY
                       </span>
                     ) : (
                       <span style={{
-                        background: 'rgba(16, 185, 129, 0.2)',
-                        color: '#10b981',
+                        background: '#ecfdf5',
+                        color: '#047857',
                         fontSize: '0.68rem',
                         fontWeight: 700,
                         padding: '1px 6px',
-                        borderRadius: '4px'
+                        borderRadius: '4px',
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        gap: '3px'
                       }}>
+                        <span className="material-symbols-outlined material-symbols-fill" style={{ fontSize: '13px' }}>verified</span>
                         VERIFIED KNOWLEDGE
                       </span>
                     )}
                     {m.context && (
-                      <span style={{ fontSize: '0.72rem', color: '#94a3b8' }}>
+                      <span style={{ fontSize: '0.72rem', color: '#777587' }}>
                         {m.context}
                       </span>
                     )}
                   </div>
                   {m.score !== null && m.score !== undefined && (
-                    <span style={{ fontSize: '0.72rem', color: '#38bdf8', fontWeight: 600 }}>
-                      Score: {roundScore(m.score)}
+                    <span style={{ fontSize: '0.72rem', color: '#4f46e5', fontWeight: 700 }}>
+                      Score: {m.score.toFixed(2)}
                     </span>
                   )}
                 </div>
 
-                <div style={{ fontSize: '0.82rem', color: '#cbd5e1', lineHeight: 1.4 }}>
+                <div style={{ fontSize: '0.84rem', color: '#0b1c30', lineHeight: 1.4 }}>
                   {m.text}
                 </div>
               </div>
@@ -309,7 +316,3 @@ export const MemoryInspector: React.FC<MemoryInspectorProps> = ({ activeMemories
     </div>
   );
 };
-
-function roundScore(score: number): string {
-  return score ? score.toFixed(2) : '1.0';
-}
